@@ -198,6 +198,7 @@ UPROGS=\
 	$U/_pingpong \
 	$U/_xargs \
 	$U/_find \
+	$U/_sandbox \
 
 ifeq ($(LAB),util)
 UPROGS += \

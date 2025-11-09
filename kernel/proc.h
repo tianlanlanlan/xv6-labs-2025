@@ -1,3 +1,5 @@
+#include "kernel/syscall.h"
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -104,4 +106,5 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int syscall_interpose_mask[SYS_MAX_SIZE];// Mask for interposed system calls, syscall_interpose_mask[0] is not used.
 };

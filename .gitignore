@@ -33,3 +33,6 @@ TAGS
 # ccache
 /.cache
 /compile_commands.json
+
+# fs img
+/fs.img.bk

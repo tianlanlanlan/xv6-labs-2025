@@ -16,8 +16,8 @@ main(int argc, char *argv[])
 {
   int i;
   int n = 2;
-  int mask = 1;
-  char *nargv[MAXARG];
+  int mask = 1;        // The index of mask in argv
+  char *nargv[MAXARG]; // New argv
 
   if(argc < 4) {
     usage(argv[0]);
@@ -41,6 +41,7 @@ main(int argc, char *argv[])
     exit(1);
   }
   if(pid == 0) {
+    printf("sandbox: mask: '%s', path: '%s'\n", argv[mask], argv[mask+1]);
     if (interpose(atoi(argv[mask]), argv[mask+1]) < 0) {
       printf("%s: interpose failed", argv[0]);
       exit(1);

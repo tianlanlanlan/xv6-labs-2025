@@ -287,6 +287,11 @@ kfork(void)
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
+  // Copy syscall mask.
+  for (int i = 0; i < NELEM(p->syscall_interpose_mask); i++) {
+    np->syscall_interpose_mask[i] = p->syscall_interpose_mask[i];
+  }
+
   pid = np->pid;
 
   release(&np->lock);

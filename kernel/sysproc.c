@@ -105,3 +105,35 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// Decode syscall mask into syscall number.
+static int decode_syscall_mask(int syscall_mask) {
+  int syscall_num = 0;
+  while (syscall_mask > 1) {
+    syscall_mask = syscall_mask >> 1;
+    syscall_num++;
+  }
+  return syscall_num;
+}
+
+// Set syscall mask for current process.
+uint64 sys_interpose(void) {
+  int syscall_mask;
+  char path[MAXPATH];
+
+  argint(0, &syscall_mask);
+  if (argstr(1, path, MAXPATH) < 0) {
+    return -1;
+  }
+
+  struct proc *p = myproc();
+  int syscall_num = decode_syscall_mask(syscall_mask);
+  if (syscall_num < 0 || syscall_num >= NELEM(p->syscall_interpose_mask)) {
+    return -1;
+  } else {
+    p->syscall_interpose_mask[syscall_num] = 1;
+  }
+
+  (void)path; // currently path is unused
+  return 0;
+}

@@ -1,0 +1,7 @@
+1. usertrap
+2. 15
+3. dont know cpu in which mode. sstatus = 0x200000022
+4. at address 0x80001d20
+5. a3 register
+6. because 0x0 is not mapped into kernel address space
+7. process name: init, pid: 1
