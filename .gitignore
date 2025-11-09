@@ -27,3 +27,9 @@ barrier
 *.pcap
 TAGS
 
+# vscode config
+/.vscode
+
+# ccache
+/.cache
+/compile_commands.json

@@ -195,8 +195,9 @@ UPROGS=\
 	$U/_logstress\
 	$U/_forphan\
 	$U/_dorphan\
-
-
+	$U/_pingpong \
+	$U/_xargs \
+	$U/_find \
 
 ifeq ($(LAB),util)
 UPROGS += \
