@@ -6,43 +6,43 @@
 
 void usage(char *s) {
   fprintf(2, "Usage: %s <mask> <path> <command>\n", s);
+  fprintf(2, "  mask: the mask of system calls to reject\n");
+  fprintf(2, "  path: file path allowed to be accessed\n");
+  fprintf(2, "  command: comands will be sandboxed\n");
   exit(1);
 }
 
 // Sandbox a command by disallowing system calls in mask and
 // system calls that are using path
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   int i;
   int n = 2;
-  int mask = 1;        // The index of mask in argv
   char *nargv[MAXARG]; // New argv
 
-  if(argc < 4) {
+  if (argc < 4) {
+    usage(argv[0]);
+  }
+  char *mask_str = argv[1];
+  char *path_str = argv[2];
+
+  if (mask_str[0] < '0' || mask_str[0] > '9') {
     usage(argv[0]);
   }
 
-  if(argv[mask][0] < '0' || argv[mask][0] > '9'){
-    usage(argv[0]);
-  }
-
-  n += 1; // skip path
-    
   // strip off the first n arguments to sandbox
-  for(i = n; i < argc && i < MAXARG; i++){
-    nargv[i-n] = argv[i];
+  for (i = 3; i < argc && i < MAXARG; i++) {
+    nargv[i - n] = argv[i];
   }
-  nargv[argc-n] = 0;
+  nargv[argc - n] = 0;
 
   int pid = fork();
-  if(pid < 0) {
+  if (pid < 0) {
     printf("%s: exec fork failed\n", argv[0]);
     exit(1);
   }
-  if(pid == 0) {
-    printf("sandbox: mask: '%s', path: '%s'\n", argv[mask], argv[mask+1]);
-    if (interpose(atoi(argv[mask]), argv[mask+1]) < 0) {
+  if (pid == 0) {
+    printf("sandbox: mask: '%s', path: '%s'\n", mask_str, path_str);
+    if (interpose(atoi(mask_str), path_str) < 0) {
       printf("%s: interpose failed", argv[0]);
       exit(1);
     }
@@ -52,6 +52,6 @@ main(int argc, char *argv[])
   } else {
     wait(0);
   }
-  
+
   return 0;
 }
