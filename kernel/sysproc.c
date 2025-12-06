@@ -107,6 +107,7 @@ sys_uptime(void)
 }
 
 // Decode syscall mask into syscall number.
+// For example, decode_syscall_mask(32768) returns 15
 static int decode_syscall_mask(int syscall_mask) {
   int syscall_num = 0;
   while (syscall_mask > 1) {
@@ -126,14 +127,16 @@ uint64 sys_interpose(void) {
     return -1;
   }
 
+  printf("path = %s\n", path);
+
   struct proc *p = myproc();
   int syscall_num = decode_syscall_mask(syscall_mask);
-  if (syscall_num < 0 || syscall_num >= NELEM(p->syscall_interpose_mask)) {
+  if (syscall_num < 0 || syscall_num >= NELEM(p->sandbox_mask)) {
     return -1;
   } else {
-    p->syscall_interpose_mask[syscall_num] = 1;
+    p->sandbox_mask[syscall_num] = 1;
+    memmove(p->sandbox_path, path, sizeof(path));
   }
 
-  (void)path; // currently path is unused
   return 0;
 }

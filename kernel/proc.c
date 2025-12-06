@@ -288,9 +288,12 @@ kfork(void)
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   // Copy syscall mask.
-  for (int i = 0; i < NELEM(p->syscall_interpose_mask); i++) {
-    np->syscall_interpose_mask[i] = p->syscall_interpose_mask[i];
+  for (int i = 0; i < NELEM(p->sandbox_mask); i++) {
+    np->sandbox_mask[i] = p->sandbox_mask[i];
   }
+
+  // Copy sandbox path.
+  memmove(np->sandbox_path, p->sandbox_path, sizeof(p->sandbox_path));
 
   pid = np->pid;
 

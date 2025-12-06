@@ -314,6 +314,13 @@ sys_open(void)
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
+  // If open syscall is in sandbox mask, then check path is allowed in sandbox
+  // or not
+  struct proc *p = myproc();
+  if (p->sandbox_mask[SYS_open] == 1 &&  memcmp(p->sandbox_path, path, strlen(path)) != 0) {
+    return -1;
+  }
+
   begin_op();
 
   if(omode & O_CREATE){
@@ -442,6 +449,15 @@ sys_exec(void)
   if(argstr(0, path, MAXPATH) < 0) {
     return -1;
   }
+
+  // If exec syscall is in sandbox mask, then check path is allowed in sandbox
+  // or not
+  struct proc *p = myproc();
+  if (p->sandbox_mask[SYS_exec] == 1 &&
+      memcmp(p->sandbox_path, path, strlen(path)) != 0) {
+    return -1;
+  }
+
   memset(argv, 0, sizeof(argv));
   for(i=0;; i++){
     if(i >= NELEM(argv)){

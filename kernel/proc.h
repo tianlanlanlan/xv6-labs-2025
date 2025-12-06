@@ -106,5 +106,11 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int syscall_interpose_mask[SYS_MAX_SIZE];// Mask for interposed system calls, syscall_interpose_mask[0] is not used.
+
+  // for sandbox
+  int sandbox_mask[SYS_MAX_SIZE]; // Mask for interposed system calls,
+                                  // sandbox_mask[0] is not used. 0: allow, 1:
+                                  // interpose
+  char sandbox_path[MAXPATH]; // Fil path allowed to be accessed by interposed
+                              // system calls
 };

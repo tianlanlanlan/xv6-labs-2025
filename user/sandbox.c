@@ -16,7 +16,6 @@ void usage(char *s) {
 // system calls that are using path
 int main(int argc, char *argv[]) {
   int i;
-  int n = 2;
   char *nargv[MAXARG]; // New argv
 
   if (argc < 4) {
@@ -30,10 +29,12 @@ int main(int argc, char *argv[]) {
   }
 
   // strip off the first n arguments to sandbox
+  int n = 0;
   for (i = 3; i < argc && i < MAXARG; i++) {
-    nargv[i - n] = argv[i];
+    // printf("argv[%d] = %s\n", n, argv[i]);
+    nargv[n++] = argv[i];
   }
-  nargv[argc - n] = 0;
+  nargv[n] = 0;
 
   int pid = fork();
   if (pid < 0) {
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   if (pid == 0) {
-    printf("sandbox: mask: '%s', path: '%s'\n", mask_str, path_str);
+    // printf("sandbox: mask: '%s', path: '%s'\n", mask_str, path_str);
     if (interpose(atoi(mask_str), path_str) < 0) {
       printf("%s: interpose failed", argv[0]);
       exit(1);
