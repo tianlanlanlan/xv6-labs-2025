@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "memlayout.h"
 
 struct cpu cpus[NCPU];
 
@@ -202,6 +203,22 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+#ifdef LAB_PGTBL
+  struct usyscall *usys_pa;
+  if ((usys_pa = (struct usyscall *)kalloc()) != 0) {
+    usys_pa->pid = p->pid;
+    if (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(usys_pa),
+                 PTE_R | PTE_U) < 0) {
+      uvmunmap(pagetable, USYSCALL, 1, 0);
+      uvmfree(pagetable, 0);
+      return 0;
+    }
+  } else {
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+#endif
+
   return pagetable;
 }
 
@@ -212,6 +229,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, USYSCALL, 1, 0);
   uvmfree(pagetable, sz);
 }
 

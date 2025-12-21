@@ -140,15 +140,32 @@ walkaddr(pagetable_t pagetable, uint64 va)
   return pa;
 }
 
-
 #if defined(LAB_PGTBL) || defined(SOL_MMAP) || defined(SOL_COW)
-void
-vmprint(pagetable_t pagetable) {
+static void vmprint_recursive(pagetable_t pagetable, int depth) {
+  // there are 2^9 = 512 PTEs in a page table.
+  const int kLength = PGSIZE / sizeof(pte_t);
+  for (int i = 0; i < kLength; i++) {
+    pte_t pte = pagetable[i];
+    if ((pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X)) == 0) {
+      // this PTE points to a lower-level page table.
+      int n = depth;
+      while (n--) {
+        printf(" ..");
+      }
+      printf("%p: pte %p pa %p\n", pagetable + i, (void *)pte,
+      (void *)PTE2PA(pte));
+      uint64 child = PTE2PA(pte);
+      vmprint_recursive((pagetable_t)child, ++depth);
+    }
+  }
+}
+
+void vmprint(pagetable_t pagetable) {
   // your code here
+  printf("page table %p\n", pagetable);
+  vmprint_recursive(pagetable, 1);
 }
 #endif
-
-
 
 // add a mapping to the kernel page table.
 // only used when booting.

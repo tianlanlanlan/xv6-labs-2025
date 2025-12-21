@@ -27,3 +27,6 @@ barrier
 *.pcap
 TAGS
 
+/compile_commands.json
+/.cache
+/fs.img.bk
