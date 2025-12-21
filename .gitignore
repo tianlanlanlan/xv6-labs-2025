@@ -26,4 +26,10 @@ barrier
 *.dSYM
 *.pcap
 TAGS
+<<<<<<< Updated upstream
 
+=======
+/fs.img.bk
+/compile_commands.json
+/.cache
+>>>>>>> Stashed changes

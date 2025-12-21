@@ -7,6 +7,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "fs.h"
+#include <sys/_intsup.h>
 
 /*
  * the kernel's page table.
@@ -162,8 +163,10 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
   for(;;){
     if((pte = walk(pagetable, a, 1)) == 0)
       return -1;
-    if(*pte & PTE_V)
+    if(*pte & PTE_V) {
+      printf("va: %p\n", (void *)va);
       panic("mappages: remap");
+    }
     *pte = PA2PTE(pa) | perm | PTE_V;
     if(a == last)
       break;
@@ -299,7 +302,6 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   pte_t *pte;
   uint64 pa, i;
   uint flags;
-  char *mem;
 
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walk(old, i, 0)) == 0)
@@ -308,12 +310,22 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
       continue;   // physical page hasn't been allocated
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
+    // If page have write permission, marked as copy-on-write page, clear PTE_W and add PTE_C
+    // else do not mark as copy-on-write page.
+    if (flags & PTE_W) {
+      flags = (~PTE_W & flags) | PTE_C;
+      // Change parent permission
+      *pte = (*pte & ~PTE_MASK) | flags;
+    }
+    addrefcount(pa);
+    // Add mapping for child and set permission to read-only
+    if (mappages(new, i, PGSIZE, pa, flags) != 0) {
       goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
-      kfree(mem);
-      goto err;
+    }
+    if (flags & PTE_C) {
+      printf("Is cow page: %p, ref count: %d\n", (void*)i, getrefcount(pa));
+    } else {
+      printf("Not cow page: %p, ref count: %d\n", (void*)i, getrefcount(pa));
     }
   }
   return 0;
@@ -458,29 +470,63 @@ vmfault(pagetable_t pagetable, uint64 va, int read)
   if (va >= p->sz)
     return 0;
   va = PGROUNDDOWN(va);
-  if(ismapped(pagetable, va)) {
-    return 0;
-  }
-  mem = (uint64) kalloc();
-  if(mem == 0)
-    return 0;
-  memset((void *) mem, 0, PGSIZE);
-  if (mappages(p->pagetable, va, PGSIZE, mem, PTE_W|PTE_U|PTE_R) != 0) {
-    kfree((void *)mem);
-    return 0;
-  }
-  return mem;
-}
-
-int
-ismapped(pagetable_t pagetable, uint64 va)
-{
   pte_t *pte = walk(pagetable, va, 0);
   if (pte == 0) {
     return 0;
   }
-  if (*pte & PTE_V){
-    return 1;
+  if ((*pte & PTE_V) && (*pte & PTE_C)) {
+    // Is copy-on-write page
+    uint64 old_pa = PTE2PA(*pte);
+
+    // Get page reference count
+    int ref_count = getrefcount(old_pa);
+    if (ref_count >= 2) {
+      // Alloc new page and copy data
+      mem = (uint64)kalloc();
+      if (mem == 0)
+        return 0;
+      memmove((char *)mem, (char *)old_pa, PGSIZE);
+
+      // Clear copy-on-write bit
+      uint old_flag = PTE_FLAGS(*pte);
+      uint new_flag = (old_flag & ~PTE_C) | PTE_W;
+
+      // Unmap old physical address
+      uvmunmap(p->pagetable, va, 1, 1);
+
+      // Mapping into new physical address
+      if (mappages(p->pagetable, va, PGSIZE, mem, new_flag) != 0) {
+        kfree((void *)mem);
+        return 0;
+      }
+
+      // *pte = PA2PTE(mem) | new_flag | PTE_V;
+      // kfree((void *)old_pa);
+    } else if (ref_count == 1) {
+      // If only one page mapping into physical page, remove PTE_C and add PTE_W
+      uint old_flag = PTE_FLAGS(*pte);
+      uint new_flag = (old_flag & ~PTE_C) | PTE_W;
+      *pte = (*pte & ~PTE_MASK) | new_flag;
+      return 0;
+    } else {
+      // Invalid cow page
+      printf("ref_count: %d\n", ref_count);
+      panic("vmfault: invalid cow page");
+    }
+  } else {
+    // Non copy-on-write page and page is mapped already
+    if (*pte & PTE_V) {
+      return 0;
+    }
+    mem = (uint64)kalloc();
+    if (mem == 0)
+      return 0;
+    printf("kalloc ref count: %d\n", getrefcount(mem));
+    memset((void *)mem, 0, PGSIZE);
+    if (mappages(p->pagetable, va, PGSIZE, mem, PTE_W | PTE_U | PTE_R) != 0) {
+      kfree((void *)mem);
+      return 0;
+    }
   }
-  return 0;
+  return mem;
 }

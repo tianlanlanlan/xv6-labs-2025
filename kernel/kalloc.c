@@ -20,6 +20,8 @@ struct run {
 
 struct {
   struct spinlock lock;
+  // -1: not valid, 0: freed, >0: page reference count
+  int reference_count[REF_COUNT_ARRAY_SIZE];
   struct run *freelist;
 } kmem;
 
@@ -28,6 +30,7 @@ kinit()
 {
   initlock(&kmem.lock, "kmem");
   freerange(end, (void*)PHYSTOP);
+  memset(kmem.reference_count, -1, REF_COUNT_ARRAY_SIZE);
 }
 
 void
@@ -54,11 +57,22 @@ kfree(void *pa)
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
-  r = (struct run*)pa;
+  r = (struct run *)pa;
 
   acquire(&kmem.lock);
-  r->next = kmem.freelist;
-  kmem.freelist = r;
+  int ref_count = kmem.reference_count[(uint64)r / PGSIZE];
+  if (ref_count < 0) {
+    panic("kfree: ref_count < 0");
+  } else {
+    if (ref_count > 0) {
+      ref_count--;
+    }
+    kmem.reference_count[(uint64)r / PGSIZE] = ref_count;
+    if (ref_count == 0) {
+      r->next = kmem.freelist;
+      kmem.freelist = r;
+    }
+  }
   release(&kmem.lock);
 }
 
@@ -72,11 +86,35 @@ kalloc(void)
 
   acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r) {
     kmem.freelist = r->next;
+    ++kmem.reference_count[(uint64)r / PGSIZE];
+  }
   release(&kmem.lock);
 
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
+}
+
+int getrefcount(uint64 page_addr) {
+  int ref_count = -1;
+  if (!page_addr) {
+    panic("getrefcount");
+  }
+
+  acquire(&kmem.lock);
+  ref_count = kmem.reference_count[page_addr / PGSIZE];
+  release(&kmem.lock);
+  return ref_count;
+}
+
+void addrefcount(uint64 page_addr) {
+  if (!page_addr) {
+    panic("addrefcount: Invalid addr");
+  }
+  acquire(&kmem.lock);
+  ++(kmem.reference_count[page_addr / PGSIZE]);
+  // printf("Incre ref count to %d\n", kmem.reference_count[page_addr / PGSIZE]);
+  release(&kmem.lock);
 }
