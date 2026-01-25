@@ -96,6 +96,7 @@ supercheck(char *end)
   pte_t last_pte = 0;
   uint64 a = (uint64) end;
   uint64 s = SUPERPGROUNDUP(a);
+  printf("a = %p, s = %p\n", (void *)a, (void *)s);
 
   for (; a < s; a += PGSIZE) {
     pte_t pte = (pte_t) pgpte((void *) a);
@@ -136,10 +137,11 @@ superpg_fork()
   testname = "superpg_fork";
   
   char *end = sbrk(SZ);
+  printf("end = %p\n", end);
   if (end == 0 || end == SBRK_ERROR)
     err("sbrk failed");
 
-  // check if parent has super pages
+  // check if current process (parent process) has super pages
   supercheck(end);
   if((pid = fork()) < 0) {
     err("fork");
