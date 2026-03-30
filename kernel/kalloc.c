@@ -39,7 +39,7 @@ void kinit() {
   freerange(end, (void *)super_pg_start);
 
   int pg_num = ((uint64)PHYSTOP - (uint64)super_pg_start) / SUPER_PGSIZE;
-  printf("num = %d\n", pg_num);
+  printf("super page num = %d\n", pg_num);
 
   // For super 2m page size
   super_freerange((void *)super_pg_start, (void *)PHYSTOP);

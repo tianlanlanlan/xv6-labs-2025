@@ -103,6 +103,10 @@ supercheck(char *end)
     if (pte == 0) {
       err("no pte");
     }
+    if ((uint64)last_pte != 0 && pte == last_pte) {
+      err("pte same");
+    }
+    last_pte = pte;
   }
 
   for (uint64 p = s;  p < s + 512 * PGSIZE; p += PGSIZE) {
