@@ -5,7 +5,7 @@
 #include "user/user.h"
 #include "kernel/vm.h"
 
-#define SZ (8 * SUPERPGSIZE)
+#define SZ (8 * SUPERPGSIZE) // 8 * 2MB = 16MB
 
 void print_pgtbl();
 void print_kpgtbl();
@@ -140,8 +140,7 @@ superpg_fork()
   printf("superpg_fork starting\n");
   testname = "superpg_fork";
   
-  char *end = sbrk(SZ);
-  printf("end = %p\n", end);
+  char *end = sbrkeager(SZ);
   if (end == 0 || end == SBRK_ERROR)
     err("sbrk failed");
 
@@ -162,7 +161,7 @@ superpg_fork()
   }
 
   // free super pages
-  sbrk(-SZ);
+  sbrkeager(-SZ);
   if((pid = fork()) < 0) {
     err("fork");
   } else if(pid == 0) {
@@ -188,15 +187,15 @@ superpg_free()
   printf("superpg_free starting\n");
   testname = "superpg_free";
 
-  char *end = sbrk(SZ);
+  char *end = sbrkeager(SZ);
   if (end == 0 || end == SBRK_ERROR)
     err("sbrk failed");
 
   // free pages beyond a super page
-  char *a = sbrk(0);
+  char *a = sbrkeager(0);
   uint64 s = SUPERPGROUNDDOWN((uint64) a);
-  sbrk(-((uint64) a-s));
-  a = sbrk(0);
+  sbrkeager(-((uint64) a-s));
+  a = sbrkeager(0);
 
   pte_t pte1 = (pte_t) pgpte((void *) a-PGSIZE);
   pte_t pte2 = (pte_t) pgpte((void *) a-2*PGSIZE);
@@ -209,8 +208,8 @@ superpg_free()
   * (a - 2*PGSIZE + 1) = '9';
 
   // free last 4096 bytes of a super page
-  sbrk(-PGSIZE);
-  a = sbrk(0);
+  sbrkeager(-PGSIZE);
+  a = sbrkeager(0);
 
   if (*(a - PGSIZE + 1) != '9') {
     err("lost content after freeing part of super page");
@@ -242,8 +241,8 @@ superpg_free()
 
   s = SUPERPGROUNDDOWN((uint64) a);
   for (; (uint64) a > s; a -= PGSIZE) {
-    a = sbrk(-PGSIZE);
-    pte1 = (pte_t) pgpte(sbrk(0));
+    a = sbrkeager(-PGSIZE);
+    pte1 = (pte_t) pgpte(sbrkeager(0));
     if(pte1 != 0) {
       err("page hasn't been freed");
     }

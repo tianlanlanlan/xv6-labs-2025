@@ -154,13 +154,15 @@ memcpy(void *dst, const void *src, uint n)
 }
 
 char *
-sbrk(int n) {
-  return sys_sbrk(n, SBRK_EAGER);
+sbrkeager(int n) {
+  uint64 ptr = sbrk(n, SBRK_EAGER);
+  return (char *)ptr;
 }
 
 char *
 sbrklazy(int n) {
-  return sys_sbrk(n, SBRK_LAZY);
+  uint64 ptr = sbrk(n, SBRK_LAZY);
+  return (char *)ptr;
 }
 
 #ifdef LAB_PGTBL

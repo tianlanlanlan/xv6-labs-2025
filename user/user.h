@@ -26,7 +26,7 @@ int mkdir(const char*);
 int chdir(const char*);
 int dup(int);
 int getpid(void);
-char* sys_sbrk(int,int);
+int sbrk(int /* bytes */, int /* type: SBRK_EAGER or SBRK_LAZY */);
 int pause(int);
 int uptime(void);
 #ifdef LAB_NET
@@ -53,7 +53,7 @@ void* memset(void*, int, uint);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
-char* sbrk(int);
+char* sbrkeager(int);
 char* sbrklazy(int);
 #ifdef LAB_LOCK
 int statistics(void*, int);

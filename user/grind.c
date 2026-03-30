@@ -52,7 +52,7 @@ go(int which_child)
 {
   int fd = -1;
   static char buf[999];
-  char *break0 = sbrk(0);
+  char *break0 = sbrkeager(0);
   uint64 iters = 0;
 
   mkdir("grindir");
@@ -125,10 +125,10 @@ go(int which_child)
       }
       wait(0);
     } else if(what == 15){
-      sbrk(6011);
+      sbrkeager(6011);
     } else if(what == 16){
-      if(sbrk(0) > break0)
-        sbrk(-(sbrk(0) - break0));
+      if(sbrkeager(0) > break0)
+        sbrkeager(-(sbrkeager(0) - break0));
     } else if(what == 17){
       int pid = fork();
       if(pid == 0){

@@ -51,7 +51,7 @@ morecore(uint nu)
 
   if(nu < 4096)
     nu = 4096;
-  p = sbrk(nu * sizeof(Header));
+  p = sbrkeager(nu * sizeof(Header));
   if(p == SBRK_ERROR)
     return 0;
   hp = (Header*)p;
