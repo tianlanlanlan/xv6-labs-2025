@@ -14,6 +14,7 @@ void super_freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
+static uint64 superpg_start_addr; // Start address of super page
 
 struct run {
   struct run *next;
@@ -33,16 +34,16 @@ void kinit() {
   initlock(&kmem.lock, "kmem");
   initlock(&super_kmem.lock, "super_kmem");
 
-  uint64 super_pg_start = PHYSTOP - 4 * SUPER_PGSIZE;
+  superpg_start_addr = PHYSTOP - 4 * SUPER_PGSIZE;
 
   // For normal 4k page size
-  freerange(end, (void *)super_pg_start);
+  freerange(end, (void *)superpg_start_addr);
 
-  int pg_num = ((uint64)PHYSTOP - (uint64)super_pg_start) / SUPER_PGSIZE;
+  int pg_num = ((uint64)PHYSTOP - (uint64)superpg_start_addr) / SUPER_PGSIZE;
   printf("super page num = %d\n", pg_num);
 
   // For super 2m page size
-  super_freerange((void *)super_pg_start, (void *)PHYSTOP);
+  super_freerange((void *)superpg_start_addr, (void *)PHYSTOP);
 }
 
 void
@@ -73,7 +74,7 @@ kfree(void *pa)
 {
   struct run *r;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
+  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= superpg_start_addr)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
@@ -111,7 +112,7 @@ kalloc(void)
 void super_kfree(void *pa) {
   struct run *r;
 
-  if (((uint64)pa % SUPER_PGSIZE) != 0 || (char *)pa < end || (uint64)pa >= PHYSTOP)
+  if (((uint64)pa % SUPER_PGSIZE) != 0 || (uint64)pa < superpg_start_addr || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
