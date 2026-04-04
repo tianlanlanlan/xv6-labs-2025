@@ -26,4 +26,6 @@ barrier
 *.dSYM
 *.pcap
 TAGS
+/compile_commnads.json
+/.cache/
 
