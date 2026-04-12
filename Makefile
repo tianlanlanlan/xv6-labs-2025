@@ -28,6 +28,7 @@ OBJS = \
   $K/pipe.o \
   $K/exec.o \
   $K/sysfile.o \
+  $K/syssignal.o \
   $K/kernelvec.o \
   $K/plic.o \
   $K/virtio_disk.o
@@ -196,7 +197,7 @@ UPROGS=\
 	$U/_logstress\
 	$U/_forphan\
 	$U/_dorphan\
-
+	$U/_alarmtest\
 
 
 ifeq ($(LAB),util)
