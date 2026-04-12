@@ -89,7 +89,8 @@ print_kpgtbl()
   printf("print_kpgtbl: OK\n");
 }
 
-
+// 检查 end 开始的虚拟地址，是否包含一页 superpage (2M)
+// end 到 2M 的部分，一定需要是按照 4k 分页
 void
 supercheck(char *end)
 {
