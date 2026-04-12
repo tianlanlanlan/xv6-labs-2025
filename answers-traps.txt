@@ -12,8 +12,33 @@ a2: 13
 
 3. At what address is the function printf located?
 
-
+printf address: 0x73e
 
 4. What value is in the register ra just after the jalr to printf in main?
 
+ra = 0x3c, the next assembly after jal 0x73e
+
 5. 
+5.1 What is the output?
+```
+output: "HE110 World"
+
+decimal 57616 -> hexdecimal 0xE110
+
+0x72 -> 'r'
+0x6c -> 'l'
+0x64 -> 'd'
+```
+5.2  If the RISC-V were instead big-endian what would you set i to in order to yield the same output? 
+yes, chang i to
+```
+unsigned int i = 0x726c6400;
+```
+5.3 Would you need to change 57616 to a different value?
+no
+
+6. what is going to be printed after 'y='?
+caonnot compile success
+```
+printf("x=%d y=%d", 3);
+```
