@@ -152,6 +152,8 @@ endif
 _%: %.o $(ULIB) $U/user.ld
 	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $< $(ULIB)
 	$(OBJDUMP) -S $@ > $*.asm
+	$(OBJDUMP) -D $@ > $*.all.asm
+	$(OBJDUMP) -s $@ > $*.s
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
 $U/usys.S : $U/usys.pl
