@@ -1,0 +1,8 @@
+1. Superpage support for 2MB pages
+2. Modified kalloc.c to support separate superpage allocator
+3. Modified vm.c (mappages, uvmalloc, uvmunmap, uvmcopy, freewalk, walkaddr) to handle 2MB superpage mappings
+4. Modified sys_sbrk to align eager allocations to 2MB boundaries
+5. Modified vmprint to show virtual addresses
+
+All superpage PTEs use PTE_R|PTE_W|PTE_U|PTE_V permissions.
+Partial unmapping of a superpage triggers demotion to 4K pages.

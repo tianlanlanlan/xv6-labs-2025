@@ -27,8 +27,13 @@ barrier
 *.pcap
 TAGS
 
-/compile_commands.json
-/.cache
-/fs.img.bk
+# vscode config
+/.vscode
+
+# ccache
 /.cache/
+/compile_commands.json
 /.clangd/
+
+# fs img
+/fs.img.bk

@@ -34,7 +34,7 @@ void kinit() {
   initlock(&kmem.lock, "kmem");
   initlock(&super_kmem.lock, "super_kmem");
 
-  superpg_start_addr = PHYSTOP - 4 * SUPER_PGSIZE;
+  superpg_start_addr = PHYSTOP - 32 * SUPER_PGSIZE;
 
   // For normal 4k page size
   freerange(end, (void *)superpg_start_addr);
@@ -74,7 +74,7 @@ kfree(void *pa)
 {
   struct run *r;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= superpg_start_addr)
+  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.

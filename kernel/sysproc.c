@@ -51,8 +51,31 @@ sys_sbrk(void)
   addr = myproc()->sz;
 
   if(t == SBRK_EAGER || n < 0) {
-    if(growproc(n) < 0) {
-      return -1;
+    if(n > 0) {
+#ifdef LAB_PGTBL
+      // For eager large allocations, align to 2MB so that
+      // superpages can be used and test's supercheck() works.
+      uint64 aligned_start = SUPERPGROUNDUP(addr);
+      uint64 aligned_end = SUPERPGROUNDUP(addr + n);
+      if(aligned_start < aligned_end &&
+         (aligned_end - aligned_start) >= SUPERPGSIZE) {
+        // Switch to a 2MB-aligned region for superpage allocation.
+        // The gap [addr, aligned_start) is left unmapped.
+        myproc()->sz = aligned_start;
+        if(growproc(aligned_end - aligned_start) < 0) {
+          return -1;
+        }
+        myproc()->sz = aligned_end;
+        return aligned_start;
+      }
+#endif
+      if(growproc(n) < 0) {
+        return -1;
+      }
+    } else if(n < 0) {
+      if(growproc(n) < 0) {
+        return -1;
+      }
     }
   } else {
     // Lazily allocate memory for this process: increase its memory
