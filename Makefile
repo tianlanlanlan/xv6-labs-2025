@@ -196,7 +196,7 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_sleep\
-
+	$U/_sixfive\
 
 
 ifeq ($(LAB),syscall)
@@ -333,6 +333,14 @@ qemu-fs: check-qemu-version $K/kernel fs.img
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
 qemu-gdb: $K/kernel .gdbinit fs.img
+	@echo "*** Now run 'gdb' in another window." 1>&2
+	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+
+.gdbinit-vscode: .gdbinit.tmpl-riscv
+	sed "s/:1234/:$(GDBPORT)/" < $^ > .gdbinit
+	sed -i -e '/^target remote/d' .gdbinit
+
+qemu-gdb-vscode: $K/kernel .gdbinit-vscode fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
