@@ -57,9 +57,50 @@ main(int argc, char *argv[])
   exit(0);
 }
 
+typedef union {
+  char bytes[2];
+  int data;
+} int16_type;
+
 void
 memdump(char *fmt, char *data)
 {
   // Your code here.
-
+  for (int i = 0; fmt[i] != '\0'; ++i) {
+    char c = fmt[i];
+    if (c == 'i') {
+      // 32-bit integer, in decimal
+      printf("%d\n", *(int *)data);
+      data += sizeof(int);
+    } else if (c == 'S') {
+      // string
+      printf("%s\n", data);
+      break;
+    } else if (c == 's') {
+      uint64 *ptr_addr = (uint64 *)data;
+      char *str_addr = (char *)*ptr_addr;
+      printf("%s\n", str_addr);
+      data += sizeof(uint64);
+    } else if (c == 'p') {
+      // print 64-bit integer, in hex
+      printf("%lx\n", *(uint64 *)data);
+      data += sizeof(uint64);
+    } else if (c == 'h') {
+      // print 16-bit integer, in decimal
+      int16_type u;
+      u.bytes[0] = *data;
+      u.bytes[1] = *(data + 1);
+      printf("%d\n", u.data);
+      data += 2;
+    } else if (c == 'c') {
+      // print as char
+      printf("%c\n", *(char *)data);
+      data += sizeof(char);
+    } else {
+      printf("error: %c\n", c);
+      while (1) {
+        ;
+      }
+    }
+  }
 }
