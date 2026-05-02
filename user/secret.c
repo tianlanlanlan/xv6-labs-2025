@@ -15,9 +15,13 @@ main(int argc, char *argv[])
     exit(1);
   }
 
-  strcpy(data, "This may help.");
+  char *str = "This may help.";
+
+  strcpy(data, str);
 
   strcpy(data + 16, argv[1]);
+
+  // printf("str addr = %p\n", &(str[0]));
 
   exit(0);
 }

@@ -68,6 +68,7 @@ kexec(char *path, char **argv)
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
     uint64 sz1;
+    // printf("va: 0x%lx, size: 0x%lx, perm: 0x%x\n", ph.vaddr, ph.memsz, flags2perm(ph.flags));
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
       goto bad;
     sz = sz1;
