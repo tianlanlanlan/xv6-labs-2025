@@ -28,7 +28,7 @@ int uptime(void);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
-void *memmove(void*, const void*, int);
+void *memmove(void*, const void*, int); // same as memcpy
 char* strchr(const char*, char c);
 int strcmp(const char*, const char*);
 char* gets(char*, int max);
@@ -36,7 +36,7 @@ uint strlen(const char*);
 void* memset(void*, int, uint);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
-void *memcpy(void *, const void *, uint);
+void *memcpy(void *dst, const void *src, uint n);
 char* sbrk(int);
 char* sbrklazy(int);
 
