@@ -151,6 +151,43 @@ printfinit(void)
   initlock(&pr.lock, "pr");
 }
 
+/*
+Reference URL: https://pdos.csail.mit.edu/6.1810/2023/lec/l-riscv.txt
+Stack
+                   .
+                   .
+      +->          .
+      |   +-----------------+   |
+      |   | return address  |   |
+      |   |   previous fp ------+
+      |   | saved registers |
+      |   | local variables |
+      |   |       ...       | <-+
+      |   +-----------------+   |
+      |   | return address  |   |
+      +------ previous fp   |   |
+          | saved registers |   |
+          | local variables |   |
+      +-> |       ...       |   |
+      |   +-----------------+   |
+      |   | return address  |   |
+      |   |   previous fp ------+
+      |   | saved registers |
+      |   | local variables |
+      |   |       ...       | <-+
+      |   +-----------------+   |
+      |   | return address  |   |
+      +------ previous fp   |   |
+          | saved registers |   |
+          | local variables |   |
+  $fp --> |       ...       |   |
+          +-----------------+   |
+          | return address  |   |
+          |   previous fp ------+
+          | saved registers |
+  $sp --> | local variables |
+          +-----------------+
+*/
 // print return address (ra - 4) in each stack frame.
 void backtrace(void) {
   uint64 fp = r_fp();
@@ -159,9 +196,9 @@ void backtrace(void) {
   printf("backtrace:\n");
 
   while (fp < kernel_stack_end) {
-    uint64 ra = *(uint64 *)(fp - 8);
+    uint64 ra = *(uint64 *)(fp - sizeof(uint64));
     printf("%p\n", (uint64 *)(ra - 4));
-    fp = *(uint64 *)(fp - 16);
+    fp = *(uint64 *)(fp - sizeof(uint64) * 2);
   }
 
   return;
